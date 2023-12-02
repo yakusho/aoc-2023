@@ -1,81 +1,82 @@
 use std::collections::HashMap;
 
 pub fn part_a() {
-    let mut counter = 0;
     let file = std::fs::read_to_string("src/input/day_02").unwrap();
-    for line in file.lines() {
-        if let Some(colon_pos) = line.find(':') {
-            let game_number: u32 = line[5..colon_pos].trim().parse().unwrap_or_default();
-            let remaining_input = line[colon_pos + 1..].trim();
-            let mut ignore_flag = false;
+    let count = file
+        .lines()
+        .filter_map(|line| {
+            let game_number = line
+                .split_whitespace()
+                .nth(1)
+                .and_then(|s| s.trim_end_matches(":").parse().ok())
+                .unwrap_or(0);
 
-            let parts: Vec<&str> = remaining_input
-                .split(";")
-                .flat_map(|s| s.split_whitespace())
+            let input = line.split(":").nth(1).unwrap();
+            let colon_replaced = input.replace(";", ",");
+
+            let pairs: Vec<(u32, &str)> = colon_replaced
+                .split(",")
+                .map(|s| {
+                    let parts: Vec<&str> = s.trim().split_whitespace().collect();
+                    let color = parts[1];
+                    let count = parts[0].parse().unwrap_or(0);
+                    (count, color)
+                })
                 .collect();
 
-            let mut iter = parts.into_iter();
-            while let Some(number_str) = iter.next() {
-                if let Ok(number) = number_str.parse::<u32>() {
-                    if let Some(color) = iter.next() {
-                        let color = color.trim_end_matches(',');
-                        match color {
-                            "red" if number > 12 => ignore_flag = true,
-                            "green" if number > 13 => ignore_flag = true,
-                            "blue" if number > 14 => ignore_flag = true,
-                            _ => {}
-                        }
-                    }
-                }
-            }
+            let is_invalid = pairs.iter().any(|&(value, color)| match color {
+                "red" if value > 12 => true,
+                "green" if value > 13 => true,
+                "blue" if value > 14 => true,
+                _ => false,
+            });
 
-            if !ignore_flag {
-                counter += game_number;
+            if is_invalid {
+                None
+            } else {
+                Some(game_number)
             }
-        } else {
-            println!("Invalid input format");
-        }
-    }
+        })
+        .sum::<u32>();
 
-    println!("{}", counter)
+    println!("{}", count);
 }
 
 pub fn part_b() {
-    let mut counter = 0;
     let file = std::fs::read_to_string("src/input/day_02").unwrap();
-    for line in file.lines() {
-        if let Some(colon_pos) = line.find(':') {
-            let remaining_input = line[colon_pos + 1..].trim();
-            let mut max_values: HashMap<&str, u32> = HashMap::new();
+    let count = file
+        .lines()
+        .map(|line| {
+            let input = line.split(":").nth(1).unwrap();
+            let colon_replaced = input.replace(";", ",");
 
-            let parts: Vec<&str> = remaining_input
-                .split(";")
-                .flat_map(|s| s.split_whitespace())
+            let pairs: Vec<(u32, &str)> = colon_replaced
+                .split(",")
+                .map(|s| {
+                    let parts: Vec<&str> = s.trim().split_whitespace().collect();
+                    let color = parts[1];
+                    let count = parts[0].parse().unwrap_or(0);
+                    (count, color)
+                })
                 .collect();
 
-            let mut iter = parts.into_iter();
-            while let Some(number_str) = iter.next() {
-                if let Ok(number) = number_str.parse::<u32>() {
-                    if let Some(color) = iter.next() {
-                        let color = color.trim_end_matches(',');
-                        let max_value = max_values.entry(color).or_insert(0);
-                        if number > *max_value {
-                            *max_value = number;
-                        }
-                    }
-                }
-            }
+            let value = pairs
+                .into_iter()
+                .fold(HashMap::new(), |mut acc, (value, key)| {
+                    acc.entry(key)
+                        .and_modify(|current_value| {
+                            if value > *current_value {
+                                *current_value = value;
+                            }
+                        })
+                        .or_insert(value);
+                    acc
+                });
 
-            let mut multiplication_result = 1;
-            for max_value in max_values.values() {
-                multiplication_result *= max_value;
-            }
+            let result: u32 = value.values().product();
+            return result;
+        })
+        .sum::<u32>();
 
-            counter += multiplication_result;
-        } else {
-            println!("Invalid input format");
-        }
-    }
-
-    println!("{}", counter)
+    println!("{}", count);
 }
