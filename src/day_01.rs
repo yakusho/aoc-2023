@@ -1,28 +1,28 @@
 pub fn part_a() {
   let mut counter = 0;
-  let file = std::fs::read_to_string("input/day_01").unwrap();
+
+  let file = std::fs::read_to_string("src/input/day_01").unwrap();
   file
     .lines()
     .for_each(|line| {
-      let mut first_appearance = '0';
-      let mut last_appearance = '0';
+      let mut first_digit = 0;
+      let mut last_digit = 0;
 
       for character in line.chars() {
         if character.is_ascii_digit() {
-          first_appearance = character;
+          first_digit = character.to_digit(10).unwrap();
           break;
         }
       }
 
       for character in line.chars().rev() {
         if character.is_ascii_digit() {
-          last_appearance = character;
+          last_digit = character.to_digit(10).unwrap();
           break;
         }
       }
 
-      let concatenated = format!("{}{}", first_appearance, last_appearance);
-      counter += concatenated.parse::<i32>().unwrap()
+      counter += first_digit * 10 + last_digit;
     });
 
   println!("{}", counter)
@@ -43,30 +43,29 @@ pub fn part_b() {
 
   let mut counter = 0;
 
-  let file = std::fs::read_to_string("input/day_01").unwrap();
+  let file = std::fs::read_to_string("src/input/day_01").unwrap();
   file
     .lines()
     .for_each(|line| {
-      let mut first_appearance = '0';
-      let mut last_appearance = '0';
+      let mut first_digit = 0;
+      let mut last_digit = 0;
       let mut word = String::new();
 
       for character in line.chars() {
         if let Some((_, value)) = word_to_number.iter().find(|&&(key, _)| word.contains(key)) {
-          first_appearance = value.parse().unwrap();
+          first_digit = value.parse::<u32>().unwrap();
           word.clear();
           break;
-        }
-
-
-        if character.is_alphabetic() {
-          word.push(character)
         }
 
         if character.is_ascii_digit() {
-          first_appearance = character;
+          first_digit = character.to_digit(10).unwrap();
           word.clear();
           break;
+        }
+
+        if character.is_alphabetic() {
+          word.push(character)
         }
       }
 
@@ -75,7 +74,13 @@ pub fn part_b() {
           let reversed_key = key.chars().rev().collect::<String>();
           return word.contains(reversed_key.as_str())
         }) {
-          last_appearance = value.parse().unwrap();
+          last_digit = value.parse::<u32>().unwrap();
+          word.clear();
+          break;
+        }
+
+        if character.is_ascii_digit() {
+          last_digit = character.to_digit(10).unwrap();
           word.clear();
           break;
         }
@@ -83,16 +88,9 @@ pub fn part_b() {
         if character.is_alphabetic() {
           word.push(character)
         }
-
-        if character.is_ascii_digit() {
-          last_appearance = character;
-          word.clear();
-          break;
-        }
       }
 
-      let concatenated = format!("{}{}", first_appearance, last_appearance);
-      counter += concatenated.parse::<i32>().unwrap()
+      counter += first_digit * 10 + last_digit;
     });
 
   println!("{}", counter)
