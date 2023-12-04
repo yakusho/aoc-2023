@@ -30,7 +30,7 @@ fn check_adjacent(
 }
 
 pub fn part_a() {
-    let file = std::fs::read_to_string("src/input/day_03").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_03").unwrap();
     let mut input_vec: Vec<Vec<char>> = Vec::new();
     let mut symbol_coordinates: Vec<(usize, usize)> = Vec::new();
     let mut number_coordinates: Vec<(usize, usize)> = Vec::new();
@@ -98,7 +98,7 @@ pub fn part_a() {
 }
 
 pub fn part_b() {
-  let file = std::fs::read_to_string("src/input/day_03").unwrap();
+  let file = std::fs::read_to_string("src/test_input/day_03").unwrap();
   let mut input_vec: Vec<Vec<char>> = Vec::new();
   let mut symbol_coordinates: Vec<(usize, usize)> = Vec::new();
   let mut number_coordinates: Vec<(usize, usize)> = Vec::new();

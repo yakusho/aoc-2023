@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub fn part_a() {
-    let file = std::fs::read_to_string("src/input/day_02").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_02").unwrap();
     let count = file
         .lines()
         .filter_map(|line| {
@@ -43,7 +43,7 @@ pub fn part_a() {
 }
 
 pub fn part_b() {
-    let file = std::fs::read_to_string("src/input/day_02").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_02").unwrap();
     let count = file
         .lines()
         .map(|line| {

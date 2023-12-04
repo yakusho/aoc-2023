@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 pub fn part_a() {
-    let file = std::fs::read_to_string("src/input/day_04").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_04").unwrap();
     let result: u32 = file
         .lines()
         .map(|line| {
@@ -33,7 +33,7 @@ pub fn part_a() {
 }
 
 pub fn part_b() {
-    let file = std::fs::read_to_string("src/input/day_04").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_04").unwrap();
     let games_count: usize = file.lines().count();
     let mut game_occurrences: HashMap<usize, usize> = (1..=games_count).map(|key| (key, 1)).collect();
 

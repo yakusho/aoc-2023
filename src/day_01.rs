@@ -1,5 +1,5 @@
 pub fn part_a() {
-    let file = std::fs::read_to_string("src/input/day_01").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_01_p1").unwrap();
     let counter: u32 = file
         .lines()
         .map(|line| {
@@ -40,7 +40,7 @@ pub fn part_b() {
         ("nine", "9"),
     ];
 
-    let file = std::fs::read_to_string("src/input/day_01").unwrap();
+    let file = std::fs::read_to_string("src/test_input/day_01_p2").unwrap();
     let counter: u32 = file
         .lines()
         .map(|line| {
