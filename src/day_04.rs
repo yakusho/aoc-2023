@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub fn part_a() {
     let file = std::fs::read_to_string("src/input/day_04").unwrap();
     let result: u32 = file
@@ -41,7 +43,7 @@ pub fn part_a() {
 
 pub fn part_b() {
     let file = std::fs::read_to_string("src/input/day_04").unwrap();
-    let mut repeat_games: Vec<u32> = Vec::new();
+    let mut game_occurrences: HashMap<u32, usize> = HashMap::new();
     let games_count = file.lines().count();
 
     file.lines().for_each(|line| {
@@ -51,10 +53,7 @@ pub fn part_b() {
             .and_then(|s| s.trim_end_matches(":").parse().ok())
             .unwrap_or(0);
 
-        let occurences = repeat_games
-            .iter()
-            .filter(|&&num| num == game_number)
-            .count();
+        let occurences = *game_occurrences.get(&game_number).unwrap_or(&0);
 
         let numbers = line.split(":").nth(1).unwrap().split("|");
         let your_numbers = numbers
@@ -79,10 +78,13 @@ pub fn part_b() {
         for _ in 0..=occurences {
             for i in 1..=overlap_count {
                 let index: u32 = i.try_into().ok().unwrap_or(0);
-                repeat_games.push(game_number + index);
+                game_occurrences
+                    .entry(game_number + index)
+                    .and_modify(|e| *e += 1)
+                    .or_insert(1);
             }
         }
     });
 
-    println!("{:?}", repeat_games.len() + games_count)
+    println!("{:?}", game_occurrences.values().sum::<usize>() + games_count)
 }
