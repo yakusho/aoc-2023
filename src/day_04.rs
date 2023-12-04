@@ -1,33 +1,24 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub fn part_a() {
     let file = std::fs::read_to_string("src/input/day_04").unwrap();
     let result: u32 = file
         .lines()
         .map(|line| {
-            let numbers = line.split(":").nth(1).unwrap();
-            let your_numbers = numbers
-                .split("|")
-                .nth(0)
-                .unwrap()
-                .split_whitespace()
-                .filter_map(|s| s.parse().ok())
-                .collect::<Vec<u32>>();
-
-            let winning_numbers = numbers
-                .split("|")
+            let numbers: Vec<HashSet<&str>> = line
+                .split(":")
                 .nth(1)
                 .unwrap()
-                .split_whitespace()
-                .filter_map(|s| s.parse().ok())
-                .collect::<Vec<u32>>();
+                .split("|")
+                .map(|s| s.split_whitespace().collect::<HashSet<_>>())
+                .collect();
+
+            let (your_numbers, winning_numbers) = (&numbers[0], &numbers[1]);
 
             let overlap_count: u32 = your_numbers
-                .iter()
-                .filter(|&element| winning_numbers.contains(element))
+                .intersection(&winning_numbers)
                 .count()
                 .try_into()
-                .ok()
                 .unwrap();
 
             if overlap_count > 0 {
@@ -43,8 +34,8 @@ pub fn part_a() {
 
 pub fn part_b() {
     let file = std::fs::read_to_string("src/input/day_04").unwrap();
-    let mut game_occurrences: HashMap<u32, usize> = HashMap::new();
-    let games_count = file.lines().count();
+    let mut game_occurrences: HashMap<u8, usize> = HashMap::new();
+    let games_count: usize = file.lines().count();
 
     file.lines().for_each(|line| {
         let game_number = line
@@ -53,38 +44,31 @@ pub fn part_b() {
             .and_then(|s| s.trim_end_matches(":").parse().ok())
             .unwrap_or(0);
 
-        let occurences = *game_occurrences.get(&game_number).unwrap_or(&0);
-
-        let numbers = line.split(":").nth(1).unwrap().split("|");
-        let your_numbers = numbers
-            .clone()
-            .nth(0)
-            .unwrap()
-            .split_whitespace()
-            .collect::<Vec<&str>>();
-
-        let winning_numbers = numbers
-            .clone()
+        let occurrences = *game_occurrences.get(&game_number).unwrap_or(&0);
+        let numbers: Vec<HashSet<&str>> = line
+            .split(":")
             .nth(1)
             .unwrap()
-            .split_whitespace()
-            .collect::<Vec<&str>>();
+            .split("|")
+            .map(|s| s.split_whitespace().collect::<HashSet<_>>())
+            .collect();
 
-        let overlap_count = your_numbers
-            .iter()
-            .filter(|&element| winning_numbers.contains(element))
-            .count();
+        let (your_numbers, winning_numbers) = (&numbers[0], &numbers[1]);
+        let overlap_count = your_numbers.intersection(&winning_numbers).count();
 
-        for _ in 0..=occurences {
+        for _ in 0..=occurrences {
             for i in 1..=overlap_count {
-                let index: u32 = i.try_into().ok().unwrap_or(0);
+                let index: u8 = i.try_into().ok().unwrap_or(0);
                 game_occurrences
                     .entry(game_number + index)
-                    .and_modify(|e| *e += 1)
+                    .and_modify(|e| (*e += 1))
                     .or_insert(1);
             }
         }
     });
 
-    println!("{:?}", game_occurrences.values().sum::<usize>() + games_count)
+    println!(
+        "{:?}",
+        game_occurrences.values().sum::<usize>() + games_count
+    )
 }
