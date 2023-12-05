@@ -5,3 +5,4 @@ edition = "2021"
 authors = ["Marcos"]
 
 [dependencies]
+regex = "1.5"
