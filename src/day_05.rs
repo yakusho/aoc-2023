@@ -1,149 +1,169 @@
-use regex::Regex;
+use itertools::Itertools;
 
-#[derive(Debug)]
-struct Plant {
-    seed: u64,
-    soil: u64,
-    fertilizer: u64,
-    water: u64,
-    light: u64,
-    temperature: u64,
-    humidity: u64,
-    location: u64,
+#[derive(Debug, Clone, Copy)]
+struct Range {
+    start: i64,
+    end: i64,
 }
 
-pub fn find_n(n: u64, x: u64, y: u64, range: u64) -> Option<u64> {
-    if n >= x && n < x + range {
-        Some(y + (n - x))
-    } else {
-        None
+struct Rule {
+    source: i64,
+    destination: i64,
+    range: i64,
+}
+
+pub fn convert(seed: i64, source: i64, destination: i64, range: i64) -> i64 {
+    if (source..source + range).contains(&seed) {
+        return destination + (seed - source);
     }
-}
 
-fn convert_category(plants: &mut Vec<Plant>, current_step: &str, line: &str) {
-    let mut iter = line.split_whitespace();
-    let y: u64 = iter.next().unwrap_or_default().parse().ok().unwrap_or(0);
-    let x: u64 = iter.next().unwrap_or_default().parse().ok().unwrap_or(0);
-    let range: u64 = iter.next().unwrap_or_default().parse().ok().unwrap_or(0);
-
-    plants.iter_mut().for_each(|plant| {
-        let found_n = match current_step {
-            "seed-to-soil map:" => find_n(plant.seed, x, y, range),
-            "soil-to-fertilizer map:" => find_n(plant.soil, x, y, range),
-            "fertilizer-to-water map:" => find_n(plant.fertilizer, x, y, range),
-            "water-to-light map:" => find_n(plant.water, x, y, range),
-            "light-to-temperature map:" => find_n(plant.light, x, y, range),
-            "temperature-to-humidity map:" => find_n(plant.temperature, x, y, range),
-            "humidity-to-location map:" => find_n(plant.humidity, x, y, range),
-            _ => Some(0),
-        };
-        match current_step {
-            "seed-to-soil map:" => {
-                found_n.map(|value| {
-                    plant.soil = value;
-                    plant.fertilizer = value;
-                    plant.water = value;
-                    plant.light = value;
-                    plant.temperature = value;
-                    plant.humidity = value;
-                    plant.location = value;
-                });
-            }
-            "soil-to-fertilizer map:" => {
-                found_n.map(|value| {
-                    plant.fertilizer = value;
-                    plant.water = value;
-                    plant.light = value;
-                    plant.temperature = value;
-                    plant.humidity = value;
-                    plant.location = value;
-                });
-            }
-            "fertilizer-to-water map:" => {
-                found_n.map(|value| {
-                    plant.water = value;
-                    plant.light = value;
-                    plant.temperature = value;
-                    plant.humidity = value;
-                    plant.location = value;
-                });
-            }
-            "water-to-light map:" => {
-                found_n.map(|value| {
-                    plant.light = value;
-                    plant.temperature = value;
-                    plant.humidity = value;
-                    plant.location = value;
-                });
-            }
-            "light-to-temperature map:" => {
-                found_n.map(|value| {
-                    plant.temperature = value;
-                    plant.humidity = value;
-                    plant.location = value;
-                });
-            }
-            "temperature-to-humidity map:" => {
-                found_n.map(|value| {
-                    plant.humidity = value;
-                    plant.location = value;
-                });
-            }
-            "humidity-to-location map:" => {
-                found_n.map(|value| {
-                    plant.location = value;
-                });
-            }
-            _ => {}
-        }
-    });
+    return seed;
 }
 
 pub fn part_a() {
-    let file = std::fs::read_to_string("src/input/day_05").unwrap();
-    let mut plants: Vec<Plant> = Vec::new();
-    let mut current_step = String::new();
-
-    file.lines()
-        .filter(|line| !line.is_empty())
-        .for_each(|line| {
-            if line.starts_with("seeds:") {
-                let pattern = Regex::new(r"seeds:\s*(?P<values>.+)").unwrap();
-                let seeds: Option<Vec<&str>> = pattern
-                    .captures(line)
-                    .map(|captures| captures.name("values"))
-                    .map(|values| values.unwrap().as_str().split_whitespace().collect());
-
-                seeds.unwrap().iter().for_each(|seed| {
-                    plants.push(Plant {
-                        seed: seed.parse().ok().unwrap_or(0),
-                        soil: seed.parse().ok().unwrap_or(0),
-                        fertilizer: seed.parse().ok().unwrap_or(0),
-                        water: seed.parse().ok().unwrap_or(0),
-                        light: seed.parse().ok().unwrap_or(0),
-                        temperature: seed.parse().ok().unwrap_or(0),
-                        humidity: seed.parse().ok().unwrap_or(0),
-                        location: seed.parse().ok().unwrap_or(0),
-                    })
-                });
-            }
-
-            if line.contains("map") {
-                current_step = line.to_string();
-                return;
-            }
-
-            convert_category(&mut plants, &current_step, &line);
-        });
-
-    let min_location = plants
-        .iter()
-        .min_by_key(|plant| plant.location)
+    let input = std::fs::read_to_string("src/input/day_05").unwrap();
+    let (split_seed, split_map) = input.split_once("\n\n").unwrap();
+    let mut seeds: Vec<i64> = split_seed
+        .strip_prefix("seeds:")
         .unwrap()
-        .location;
+        .split_whitespace()
+        .map(|s| s.parse::<i64>().unwrap())
+        .collect();
+
+    let maps: Vec<Vec<Rule>> = split_map
+        .split("\n\n")
+        .map(|map| {
+            map.lines()
+                .skip(1)
+                .map(|line| {
+                    let mut split_line = line.split_whitespace();
+                    Rule {
+                        destination: split_line.next().unwrap().parse().unwrap(),
+                        source: split_line.next().unwrap().parse().unwrap(),
+                        range: split_line.next().unwrap().parse().unwrap(),
+                    }
+                })
+                .sorted_by(|a, b| a.source.cmp(&b.source))
+                .collect()
+        })
+        .collect();
+
+    seeds.iter_mut().for_each(|seed| {
+        maps.iter().for_each(|map| {
+            let mut found = false;
+            map.iter().for_each(|rule| {
+                let converted_seed = convert(*seed, rule.source, rule.destination, rule.range);
+                if converted_seed != *seed && !found {
+                    *seed = converted_seed;
+                    found = true;
+                }
+            })
+        })
+    });
+
+    let min_location = seeds.iter().min().unwrap();
 
     println!("{}", min_location);
 }
 
-// pub fn part_b() {
-// }
+pub fn part_b() {
+    let input = std::fs::read_to_string("src/input/day_05").unwrap();
+    let (split_seed, split_map) = input.split_once("\n\n").unwrap();
+    let mut seeds: Vec<Range> = split_seed
+        .strip_prefix("seeds:")
+        .unwrap()
+        .split_whitespace()
+        .map(|s| s.parse::<i64>().unwrap())
+        .chunks(2)
+        .into_iter()
+        .map(|mut chunk| {
+            let start = chunk.next().unwrap();
+            let range = chunk.next().unwrap();
+            Range {
+                start,
+                end: start + range,
+            }
+        })
+        .collect();
+
+    let maps: Vec<Vec<Rule>> = split_map
+        .split("\n\n")
+        .map(|map| {
+            map.lines()
+                .skip(1)
+                .map(|line| {
+                    let mut split_line = line.split_whitespace();
+                    Rule {
+                        destination: split_line.next().unwrap().parse().unwrap(),
+                        source: split_line.next().unwrap().parse().unwrap(),
+                        range: split_line.next().unwrap().parse().unwrap(),
+                    }
+                })
+                .sorted_by(|a, b| a.source.cmp(&b.source))
+                .collect()
+        })
+        .collect();
+
+    maps.iter().for_each(|map| {
+        let mut ranges: Vec<Range> = Vec::new();
+        seeds.iter_mut().for_each(|range| {
+            let mut current_range = range.clone();
+
+            map.iter().for_each(|rule| {
+                let offset = rule.destination - rule.source;
+                let valid = current_range.start <= rule.source + rule.range
+                    && current_range.start <= current_range.end
+                    && current_range.end >= rule.source;
+
+                if valid {
+                    if current_range.start < rule.source {
+                        ranges.push(Range {
+                            start: current_range.start,
+                            end: rule.source - 1,
+                        });
+
+                        current_range.start = rule.source;
+
+                        if current_range.end < rule.source + rule.range {
+                            ranges.push(Range {
+                                start: current_range.start + offset,
+                                end: current_range.end + offset,
+                            });
+
+                            current_range.start = current_range.end + 1;
+                        } else {
+                            ranges.push(Range {
+                                start: current_range.start + offset,
+                                end: rule.source + rule.range - 1 + offset,
+                            });
+
+                            current_range.start = rule.source + rule.range;
+                        }
+                    } else if current_range.end < rule.source + rule.range {
+                        ranges.push(Range {
+                            start: current_range.start + offset,
+                            end: current_range.end + offset,
+                        });
+
+                        current_range.start = current_range.end + 1;
+                    } else {
+                        ranges.push(Range {
+                            start: current_range.start + offset,
+                            end: rule.source + rule.range - 1 + offset,
+                        });
+
+                        current_range.start = rule.source + rule.range;
+                    }
+                }
+            });
+
+            if current_range.start <= current_range.end {
+                ranges.push(current_range);
+            }
+        });
+
+        seeds = ranges;
+    });
+
+    println!("{}", seeds.iter().map(|range| range.start).min().unwrap());
+}

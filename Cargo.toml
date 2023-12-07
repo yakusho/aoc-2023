@@ -5,4 +5,4 @@ edition = "2021"
 authors = ["Marcos"]
 
 [dependencies]
-regex = "1.5"
+itertools = "0.12.0"
