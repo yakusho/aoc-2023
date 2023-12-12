@@ -1,12 +1,12 @@
 use std::time::Instant;
 
-mod day_08;
+mod day_09;
 
 fn main() {
     let now = Instant::now();
 
-    day_08::part_a();
-    day_08::part_b();
+    day_09::part_a();
+    day_09::part_b();
 
     let elapsed = now.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
